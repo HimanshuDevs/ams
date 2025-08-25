@@ -3,7 +3,7 @@ from .models import AuthUsers, DepartmentMaster
 from utils.hashing import hash_password, verify_password
 from utils.jwt_token import create_access_token
 from sqlalchemy.future import select
-from .schemas import GetUserSchema
+from .schemas import GetUserSchema, GetDepartmentSchema
 
 async def handle_create_user(request, db):
     user_data = AuthUsers(
@@ -39,16 +39,16 @@ async def handle_login(request, db):
     access_token = create_access_token(user_data)
     return {"message":"Login successfully", "access_token":access_token}
 
-async def handle_get_user(db):
+async def handle_get_user(db,current_user):
     query = select(AuthUsers)
     result = await db.execute(query)
     users = result.scalars().all()
     return [GetUserSchema.from_orm(user) for user in users]
 
-async def handle_create_department(request, db):
-    new_dept = AuthUsers(
+async def handle_create_department(request, db, current_user):
+    new_dept = DepartmentMaster(
         department_name   = request.department_name,
-        submitted_by      = request.submitted_by
+        submitted_by      = current_user["user_id"]
     )
     db.add(new_dept)
     await db.commit()
@@ -60,8 +60,8 @@ async def handle_create_department(request, db):
         "department": new_dept
     }
 
-async def handle_get_department(db):
+async def handle_get_department(db, current_user):
     query = select(DepartmentMaster)
     result = await db.execute(query)
     departments = result.scalars().all()
-    return [GetUserSchema.from_orm(department) for department in departments]
+    return [GetDepartmentSchema.from_orm(department) for department in departments]

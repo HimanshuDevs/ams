@@ -25,7 +25,6 @@ class GetUserSchema(BaseModel):
 
 class CreateDepartmentSchema(BaseModel):
     department_name   : str
-    submitted_by      : Optional[int] = None
 
 class GetDepartmentSchema(BaseModel):
     id              : int
